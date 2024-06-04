@@ -1,0 +1,16 @@
+[Unit]
+Description=gossip
+StartLimitIntervalSec=30
+StartLimitBurst=2
+After=network.target
+
+[Service]
+User=gossip
+Group=gossip
+Type=simple
+ExecStart=/usr/local/bin/gossip
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

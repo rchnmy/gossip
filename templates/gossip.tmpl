@@ -1,0 +1,86 @@
+{{- define "__head" -}}
+{{- if eq .Status "firing" -}}
+    {{- if not .Labels.severity -}}
+🤔  **{{ .Status | Upper }}  {{ .Labels.alertname }}**
+    {{- else }}
+        {{- if eq .Labels.severity "critical" -}}
+🔥          {{- else if eq .Labels.severity "warning" -}}
+❗          {{- else if eq .Labels.severity "error" -}}
+❌          {{- else if eq .Labels.severity "info" -}}
+😎      {{- end }}  **{{ .Labels.severity | Upper }}  {{ .Labels.alertname }}**
+    {{- end }}
+{{- else if eq .Status "resolved" -}}
+✅  **{{ .Status | Upper }}  {{ .Labels.alertname }}**
+{{- end }}
+{{- end }}
+
+{{- define "__neck" }}
+● `Prometheus`
+🡲 `{{ .StartsAt.Local.Format "15:04:05 MST | 2.01.2006" }}`
+{{- if eq .Status "resolved" }}
+🡰 `{{ .EndsAt.Local.Format "15:04:05 MST | 2.01.2006" }}`
+{{- end }}
+{{ end }}
+
+{{- define "__body" -}}
+{{ if .Annotations -}}
+    {{ if eq .Status "firing" -}}
+        {{ range $annotation, $value := .Annotations -}}
+            {{ if eq $annotation "description" -}}
+{{ $annotation | Title }} `{{ $value }}`
+            {{- end -}}
+        {{ end -}}
+    {{ else -}}
+        {{ range $annotation, $value := .Annotations -}}
+            {{ if eq $annotation "summary" -}}
+{{ $annotation | Title }} `{{ $value }}`
+            {{- end -}}
+        {{ end -}}
+    {{ end -}}
+{{ end -}}
+{{ end -}}
+
+{{- define "__tail" -}}
+{{ if eq .Labels.message_format "long" -}}
+    {{ range $label, $value := .Labels -}}
+        {{ if eq $label "env" "facility" }}
+{{ $label | Title }} `{{ $value }}`
+        {{- end -}}
+        {{ if eq $label "fyi" }}
+{{ $label | Upper }} `{{ $value }}`
+        {{- end -}}
+    {{ end -}}
+{{ end }}
+{{ if eq .Status "firing" -}}
+    {{ if .GeneratorURL -}}
+[Metric]({{ .GeneratorURL }})
+        {{- range $label, $value := .Labels -}}
+            {{- if eq $label "grafana" "instruction" -}}
+{{ "  | " }} [{{ $label | Title }}]({{ $value }})
+            {{- end -}}
+        {{ end -}}
+    {{ else -}}
+        {{ if and .Labels.grafana .Labels.instruction -}}
+[Grafana]({{ .Labels.grafana }})  |  [Instruction]({{ .Labels.instruction }})
+        {{ else -}}
+            {{- range $label, $value := .Labels -}}
+                {{- if eq $label "grafana" "instruction" -}}
+[{{ $label | Title }}]({{ $value }})
+                {{ end -}}
+            {{- end -}}
+        {{ end -}}
+    {{ end -}}
+{{ end -}}
+{{ end }}
+
+{{- define "__alert" -}}
+{{ range .Alerts }}
+    {{- template "__head" . -}}
+    {{- template "__neck" . -}}
+    {{- template "__body" . -}}
+    {{- template "__tail" . }}
+{{ end }}
+{{ end }}
+
+{{ template "__alert" . }}
+

@@ -1,0 +1,15 @@
+addr: "localhost:9055"
+api:  "https://botapi.messenger.yandex.net/bot/v1/messages/sendText/"
+auth: ""
+disable_preview: true
+
+receiver:
+  dummy:
+    chat_id: ""
+    template: "/etc/gossip/templates/gossip.tmpl"
+    disable_notification: false
+
+  goofy:
+    chat_id: ""
+    template: "/etc/gossip/templates/gossip.tmpl"
+    disable_notification: true
