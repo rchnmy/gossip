@@ -1,0 +1,63 @@
+{{- define "__head" -}}
+    {{- if eq .Status "firing" -}}
+        {{- if not .Labels.severity -}}
+🔥  **FIRING {{ .Labels.alertname }}**
+        {{- else }}
+        {{- if eq .Labels.severity "critical" -}}
+🔥      {{- else if eq .Labels.severity "warning" -}}
+❗      {{- else if eq .Labels.severity "info" -}}
+❕      {{- end }} **{{ .Labels.severity | upper }} {{ .Labels.alertname }}**
+    {{- end }}
+    {{- else if eq .Status "resolved" -}}
+✅ **RESOLVED {{ .Labels.alertname }}**
+    {{- end }}
+{{- end }}
+
+{{- define "__neck" }}
+● `Prometheus YC`
+Open `{{ .StartsAt.Local.Format "15:04:05 MST | 2.01.2006" }}`
+{{- if eq .Status "resolved" }}
+Close `{{ .EndsAt.Local.Format "15:04:05 MST | 2.01.2006" }}`
+{{- end }}
+{{ end }}
+
+{{- define "__body" -}}
+    {{ if .Annotations.description -}}
+**Description** {{ .Annotations.description -}}
+    {{ else if .Annotations.summary -}}
+**Summary** {{ .Annotations.summary }}
+    {{- end -}}
+{{ end -}}
+
+{{- define "__tail" -}}
+{{ if eq .Labels.message_format "long" -}}
+    {{ if .Labels.env }}
+**Environment** {{ .Labels.env }}
+    {{- end -}}
+    {{ if .Labels.facility }}
+**Facility** {{ .Labels.facility }}
+    {{- end -}}
+    {{ if .Labels.fyi }}
+**FYI** {{ .Labels.fyi }}
+    {{- end -}}
+{{- end -}}
+{{ if eq .Status "firing" }}
+**[Metric ↩]({{ .GeneratorURL }})**
+    {{- if .Labels.grafana -}}
+{{ " " }} **[Grafana ↩]({{ .Labels.grafana }})**
+    {{- end -}}
+    {{- if .Labels.instruction -}}
+{{ " " }} **[Instruction ↩]({{ .Labels.instruction }})**
+    {{- end -}}
+{{ end -}}
+{{ end }}
+
+{{- define "__alert" -}}
+    {{- template "__head" . -}}
+    {{- template "__neck" . -}}
+    {{- template "__body" . -}}
+    {{- template "__tail" . }}
+{{- end -}}
+
+{{ template "__alert" . -}}
+
